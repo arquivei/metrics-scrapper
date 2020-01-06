@@ -1,5 +1,7 @@
 FROM python:3-alpine
 
+LABEL maintainer="Engenharia Arquivei <engenharia@arquivei.com.br>"
+
 ARG HTTP_PORT
 ENV HTTP_PORT=8000
 
