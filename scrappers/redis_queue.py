@@ -1,8 +1,11 @@
+from . import scrapper
 from prometheus_client import Gauge
 import redis
 
-class RedisQueue:
+class RedisQueue(scrapper.Scrapper):
     def __init__(self, prometheus_config):
+        super(RedisQueue, self).__init__()
+
         self.queue_size = Gauge(
             "redis_queue_size",
             "Gives the number of elements in specific key",
@@ -19,10 +22,22 @@ class RedisQueue:
 
     def scrapper(self, instance):
         try:
+            instance = self.get_instance_defaults(instance)
             conn = self.connect(instance['host'], instance['port'], instance['db'])
             self.process_db(conn, instance['prefix'], instance['check_mem'], instance['id'])
         except:
             pass
+
+    def get_instance_defaults(self, instance):
+        defaults = {
+            "host": "127.0.0.1",
+            "port": 6379,
+            "db": 0,
+            "prefix": "queue",
+            "check_mem": False
+        }
+
+        return defaults.copy().update(instance)
 
     def connect(self, host, port, db):
         conn = redis.Redis(host=host, port=int(port), db=int(db))
