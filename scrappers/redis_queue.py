@@ -25,8 +25,8 @@ class RedisQueue(scrapper.Scrapper):
             instance = self.get_instance_defaults(instance)
             conn = self.connect(instance['host'], instance['port'], instance['db'])
             self.process_db(conn, instance['prefix'], instance['check_mem'], instance['id'])
-        except:
-            pass
+        except Exception as e:
+            self.logger.warn("Failed to scrape instance", extra={"exception": str(e), "instance": instance})
 
     def get_instance_defaults(self, instance):
         defaults = {

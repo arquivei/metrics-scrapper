@@ -28,5 +28,5 @@ class HumanCoder(scrapper.Scrapper):
                 raise Exception("Unexpected return: {}".format(req.text))
 
             self.balance.set(int(req.text))
-        except:
-            pass
+        except Exception as e:
+            self.logger.warn("Failed to scrape instance", extra={"exception": str(e), "instance": instance})
