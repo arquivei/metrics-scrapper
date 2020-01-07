@@ -36,8 +36,10 @@ class RedisQueue(scrapper.Scrapper):
             "prefix": "queue",
             "check_mem": False
         }
+        tmp = defaults.copy()
+        tmp.update(instance)
 
-        return defaults.copy().update(instance)
+        return tmp
 
     def connect(self, host, port, db):
         conn = redis.Redis(host=host, port=int(port), db=int(db))
