@@ -3,8 +3,11 @@ from prometheus_client import Gauge
 import redis
 
 class RedisQueue(scrapper.Scrapper):
+
     def __init__(self, prometheus_config):
         super(RedisQueue, self).__init__()
+
+        self.watching_queues = {}
 
         self.queue_size = Gauge(
             "redis_queue_size",
@@ -23,6 +26,10 @@ class RedisQueue(scrapper.Scrapper):
     def scrapper(self, instance):
         try:
             instance = self.get_instance_defaults(instance)
+
+            if instance['id'] not in self.watching_queues:
+                self.watching_queues[instance['id']] = set()
+
             conn = self.connect(instance['host'], instance['port'], instance['db'])
             self.process_db(conn, instance['prefix'], instance['check_mem'], instance['id'])
         except Exception as e:
@@ -48,9 +55,16 @@ class RedisQueue(scrapper.Scrapper):
     def process_db(self, conn, prefix, check_memuse, instance_id):
         keys = conn.keys("{}*".format(prefix))
 
+        for queue in self.watching_queues[instance_id]:
+            self.queue_size.labels(instance_id, queue).set(0)
+            if check_memuse:
+                self.mem_use.labels(instance_id, queue).set(0)
+
+        self.watching_queues[instance_id] = set()
         for key in keys:
             size = 0
             key_type = conn.type(key).decode('utf-8')
+            self.watching_queues[instance_id].add(key.decode('utf-8'))
 
             if (key_type == 'list'):
                 size = conn.llen(key)
