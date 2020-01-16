@@ -48,7 +48,7 @@ i = prometheus_client.Info(
     'Version and environment information',
     namespace=PROMETHEUS_CONFIG['namespace']
 )
-i.info({'version': "2001.0", 'env': os.environ['APP_ENV']})
+i.info({'version': "2001.1", 'env': os.environ['APP_ENV']})
 
 # Defines the scrappers to run every 15 seconds
 scheduler = BackgroundScheduler(timezone="UTC")

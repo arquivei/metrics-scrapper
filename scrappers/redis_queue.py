@@ -55,16 +55,11 @@ class RedisQueue(scrapper.Scrapper):
     def process_db(self, conn, prefix, check_memuse, instance_id):
         keys = conn.keys("{}*".format(prefix))
 
-        for queue in self.watching_queues[instance_id]:
-            self.queue_size.labels(instance_id, queue).set(0)
-            if check_memuse:
-                self.mem_use.labels(instance_id, queue).set(0)
-
-        self.watching_queues[instance_id] = set()
+        scrapped_queues = set()
         for key in keys:
             size = 0
             key_type = conn.type(key).decode('utf-8')
-            self.watching_queues[instance_id].add(key.decode('utf-8'))
+            scrapped_queues.add(key.decode('utf-8'))
 
             if (key_type == 'list'):
                 size = conn.llen(key)
@@ -85,3 +80,14 @@ class RedisQueue(scrapper.Scrapper):
                 self.mem_use.labels(instance_id, key.decode('utf-8')).set(memused)
             except:
                 pass
+
+        for queue in self.watching_queues[instance_id]:
+            if queue in scrapped_queues:
+                continue
+
+            self.logger.info("Removing queue from scrapped metrics", extra={"queue": queue, "instance": {"id": instance_id}})
+            self.queue_size.labels(instance_id, queue).set(0)
+            if check_memuse:
+                self.mem_use.labels(instance_id, queue).set(0)
+
+            self.watching_queues[instance_id].remove(queue)
