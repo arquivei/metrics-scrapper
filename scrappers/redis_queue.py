@@ -74,7 +74,7 @@ class RedisQueue(scrapper.Scrapper):
                 self.queue_size.labels(instance_id, key.decode('utf-8')).set(size)
 
             if not check_memuse:
-                return
+                continue
             try:
                 memused = conn.memory_usage(key)
                 self.mem_use.labels(instance_id, key.decode('utf-8')).set(memused)
