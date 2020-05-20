@@ -11,6 +11,7 @@ class HumanCoder(scrapper.Scrapper):
         self.balance = Gauge(
             "humancoder_balance",
             "Gives the current balance of the account",
+            ["account"],
             namespace=prometheus_config['namespace']
         )
 
@@ -27,6 +28,6 @@ class HumanCoder(scrapper.Scrapper):
             if not req.text.isdigit():
                 raise Exception("Unexpected return: {}".format(req.text))
 
-            self.balance.set(int(req.text))
+            self.balance.labels(instance['id']).set(int(req.text))
         except Exception as e:
             self.logger.warn("Failed to scrape instance", extra={"exception": str(e), "instance": instance})
